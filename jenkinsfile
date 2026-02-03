@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKERHUB_REPO = 'nwudofidelis/my-custom-apache'
+        GITHUB_AUTH = 'Fidelis-GitHub-creds'
+        DOCKERHUB_CREDS = credentials('docker-creds')
+    }
+
+    stages {
+        stage('source') {
+            steps {
+                echo 'Logging into GitHub account'
+                git branch: 'main', credentialsId: '${GITHUB_AUTH}', url: 'https://github.com/nwudochika/welcome-jenkins.git'
+            }
+        }
+    stage('Build') {
+            steps {
+                echo 'Building docker image'
+                sh 'whoami'
+                sh 'docker build -t ${DOCKERHUB_REPO}:v${BUILD_NUMBER} .'
+                sh 'docker images'
+            }
+        }
+    stage('Deploy') {
+            steps {
+                echo 'Deploying image to dockerhub'
+                sh 'docker login -u ${DOCKERHUB_CREDS_USR} -p ${DOCKERHUB_CREDS_PSW}'
+                sh 'docker push ${DOCKERHUB_REPO}:v${BUILD_NUMBER}'
+            }
+        }
+    }
+}
